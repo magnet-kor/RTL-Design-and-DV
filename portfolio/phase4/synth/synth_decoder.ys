@@ -1,0 +1,30 @@
+# Yosys synthesis script — Qwen 2.5-0.5B Decoder Layer
+# Target: sky130 PDK, tt_025C_1v80, 200 MHz
+
+read_verilog -sv ../../../phase2/sv/pe.sv
+read_verilog -sv ../../../phase2/sv/systolic_array.sv
+read_verilog -sv ../../sv/tree_max.sv
+read_verilog -sv ../../sv/tree_sum.sv
+read_verilog -sv ../../sv/exp_lut.sv
+read_verilog -sv ../../sv/recip_nr.sv
+read_verilog -sv ../../sv/softmax.sv
+read_verilog -sv ../../sv/silu_lut.sv
+read_verilog -sv ../../sv/rmsnorm.sv
+read_verilog -sv ../../sv/qkv_proj.sv
+read_verilog -sv ../../sv/rope.sv
+read_verilog -sv ../../sv/dma_engine_v2.sv
+read_verilog -sv ../../sv/kv_cache.sv
+read_verilog -sv ../../sv/mha.sv
+read_verilog -sv ../../sv/ffn.sv
+read_verilog -sv ../../sv/decoder_layer.sv
+
+hierarchy -check -top decoder_layer
+synth -top decoder_layer
+
+# Map to sky130 standard cells — update path as needed
+# dfflibmap -liberty /path/to/sky130_fd_sc_hd__tt_025C_1v80.lib
+# abc       -liberty /path/to/sky130_fd_sc_hd__tt_025C_1v80.lib \
+#           -constr  synth_abc.sdc
+
+stat
+write_verilog -noattr decoder_layer_synth.v
