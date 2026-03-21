@@ -5,6 +5,10 @@ on:
     branches:
       - 'claude/**'
 
+concurrency:
+  group: auto-merge-ai-chip
+  cancel-in-progress: false
+
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
@@ -18,11 +22,15 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge into AI-Chip
+      - name: Merge into AI-Chip and remove archives
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout AI-Chip
           git merge --ff-only ${{ github.ref_name }} || \
             git merge --no-ff ${{ github.ref_name }} -m "Auto-merge ${{ github.ref_name }} into AI-Chip"
+          if git ls-files | grep -qE '\.(zip|tar\.gz|tar|gz|rar)$'; then
+            git ls-files | grep -E '\.(zip|tar\.gz|tar|gz|rar)$' | xargs git rm -f
+            git commit -m "Remove archive files"
+          fi
           git push origin AI-Chip
