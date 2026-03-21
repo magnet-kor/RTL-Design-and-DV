@@ -4,10 +4,9 @@
 **Platform:** SystemVerilog RTL + Yosys (sky130 PDK, 200 MHz)
 **Author:** Jungho Lee — Samsung Electronics Foundry, Library FE DK Engineer, 6 years
 
-> The 8×8 Output Stationary Systolic Array (Phase 2, CNN inference)
-> is reused without modification 9× per decoder layer — for QKV projection,
-> multi-head attention, and FFN. The same hardware runs both CNN and Transformer
-> workloads. This is the direction of Tesla FSD Chip.
+> 8×8 Output Stationary Systolic Array (Phase 2, CNN inference)를
+> 수정 없이 Decoder Layer에서 9×(QKV Proj · MHA · FFN) 재사용.
+> 동일 하드웨어가 CNN과 Transformer 워크로드를 모두 처리 — Tesla FSD Chip과 같은 방향.
 
 ---
 
@@ -62,7 +61,7 @@ x_in[896] ──► RMSNorm ──► QKV Proj ──► RoPE ──► KV Cache
 
 ```
 ACCEL/
-├── RTL/                      SystemVerilog design files
+├── RTL/                      SystemVerilog design files (synthesizable)
 │   ├── pe.sv                 Processing Element — Output Stationary MAC (Phase 2)
 │   ├── systolic_array.sv     8×8 OS Array — reused ×9 in Phase 4 (Phase 2)
 │   ├── decoder_layer.sv      Top — 13-state dual-mode FSM (Prefill/Decode)
@@ -79,18 +78,6 @@ ACCEL/
 │   ├── exp_lut.sv            EXP look-up table (512 B ROM, 1 cycle)
 │   ├── recip_nr.sv           Newton-Raphson reciprocal (9 cycles, 2-stage)
 │   └── silu_lut.sv           SiLU look-up table (256 B ROM, 1 cycle)
-├── GOLDEN/                   Python bit-accurate reference models
-│   ├── model_analysis.py     FLOP / arithmetic intensity analysis
-│   ├── kv_cache_analysis.py  KV memory sizing and DMA overhead
-│   ├── softmax_golden.py     Fixed-point softmax reference
-│   └── rmsnorm_rope_golden.py  RMSNorm and RoPE reference
-├── TB/                       Testbench — LUT initialization scripts
-│   ├── gen_exp_lut.py        → exp_lut.hex  (512 B)
-│   ├── gen_silu_lut.py       → silu_lut.hex (256 B)
-│   └── gen_rope_lut.py       → rope_cos.hex + rope_sin.hex (16 KB)
-├── SYNTH/                    Yosys synthesis scripts
-│   ├── synth_decoder.ys      Synthesis script (read → synth → write)
-│   └── synth_abc.sdc         Timing constraints (200 MHz, sky130)
 ├── UVM/                      UVM verification environment
 │   ├── agents/
 │   │   ├── dec_agent.sv      UVM agent (driver + monitor + sequencer)
@@ -116,6 +103,18 @@ ACCEL/
 │       └── uvm_stub/
 │           ├── uvm_pkg.sv        UVM package stub
 │           └── uvm_macros.svh    UVM macro definitions
+├── GOLDEN/                   Python bit-accurate reference models
+│   ├── model_analysis.py     FLOP / arithmetic intensity analysis
+│   ├── kv_cache_analysis.py  KV memory sizing and DMA overhead
+│   ├── softmax_golden.py     Fixed-point softmax reference
+│   └── rmsnorm_rope_golden.py  RMSNorm and RoPE reference
+├── TB/                       LUT initialization scripts
+│   ├── gen_exp_lut.py        → exp_lut.hex  (512 B)
+│   ├── gen_silu_lut.py       → silu_lut.hex (256 B)
+│   └── gen_rope_lut.py       → rope_cos.hex + rope_sin.hex (16 KB)
+├── SYNTH/                    Yosys synthesis scripts
+│   ├── synth_decoder.ys      Synthesis script (read → synth → write)
+│   └── synth_abc.sdc         Timing constraints (200 MHz, sky130)
 └── DOCS/                     Documentation
     ├── README.md             This file
     ├── ARCH_SPEC.md          Architecture specification + performance budget
@@ -171,13 +170,13 @@ decoder_layer.sv                   (Top — 13-state FSM)
 ## Quick Start
 
 ```bash
-# 1. Generate LUT initialization files
+# 1. LUT 초기화 파일 생성
 cd ACCEL/TB
 python gen_exp_lut.py     # → exp_lut.hex  (512 B)
 python gen_silu_lut.py    # → silu_lut.hex (256 B)
 python gen_rope_lut.py    # → rope_cos.hex + rope_sin.hex (16 KB)
 
-# 2. Lint check
+# 2. Lint check (Verilator)
 verilator --lint-only -sv \
   -I ACCEL/RTL \
   ACCEL/RTL/pe.sv ACCEL/RTL/systolic_array.sv \
@@ -187,11 +186,28 @@ verilator --lint-only -sv \
   ACCEL/RTL/rope.sv     ACCEL/RTL/dma_engine_v2.sv ACCEL/RTL/kv_cache.sv \
   ACCEL/RTL/mha.sv      ACCEL/RTL/ffn.sv        ACCEL/RTL/decoder_layer.sv
 
-# 3. Yosys synthesis (update sky130 lib path in synth_decoder.ys first)
+# 3. UVM lint (stub 사용)
+cd ACCEL/UVM/scripts
+bash build_uvm_stub.sh
+bash run_lint.sh
+
+# 4. UVM 시뮬레이션 (VCS or Questa)
+vcs -sverilog -ntb_opts uvm-1.2 \
+    -f ACCEL/UVM/scripts/build_uvm_stub.sh \
+    ACCEL/RTL/*.sv \
+    ACCEL/UVM/agents/*.sv \
+    ACCEL/UVM/env/*.sv \
+    ACCEL/UVM/sequences/*.sv \
+    ACCEL/UVM/tests/*.sv \
+    ACCEL/UVM/tb/*.sv \
+    -top dec_tb_top
+./simv
+
+# 5. Yosys 합성 (synth_decoder.ys에서 sky130 lib 경로 수정 필요)
 cd ACCEL/SYNTH
 yosys synth_decoder.ys
 
-# 4. Run golden models
+# 6. Golden 레퍼런스 모델 실행
 cd ACCEL/GOLDEN
 python model_analysis.py
 python softmax_golden.py

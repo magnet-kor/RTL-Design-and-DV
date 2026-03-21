@@ -1,6 +1,8 @@
 # NPU — Weight Stationary Systolic Array NPU
 
-8×8 Weight Stationary Systolic Array NPU with APB/AXI4 interfaces and full UVM verification.
+8×8 Weight Stationary Systolic Array NPU. APB/AXI4 인터페이스 + 완전한 UVM 검증 환경.
+
+**Author:** Jungho Lee — Samsung Electronics Foundry, Library FE DK Engineer, 6 years
 
 ---
 
@@ -17,14 +19,14 @@ CPU ──APB──► host_interface ──► control_unit ──► systolic_
 ```
 
 **Data Flow:**
-1. CPU writes config via APB (weight/activation/output addresses, scale factor)
-2. DMA reads weights from DRAM → on-chip SRAM
-3. SRAM → `wt_col` → Systolic Array (weight load, 8 cycles)
-4. DMA reads activations from DRAM → `act_buf`
+1. CPU → APB로 설정 (weight/activation/output 주소, scale factor)
+2. DMA: DRAM → on-chip SRAM (weight load)
+3. SRAM `wt_col` → Systolic Array (weight preload, 8 cycles)
+4. DMA: DRAM → `act_buf` (activation load)
 5. `act_buf` → Systolic Array (compute, 1 cycle/column)
-6. Partial sums → Accumulator (multi-tile support)
+6. 부분합 → Accumulator (multi-tile 지원)
 7. Accumulator → Post-processor (ReLU + scale >> + INT8 clamp)
-8. DMA writes output to DRAM
+8. DMA: 결과 → DRAM (output write)
 
 ---
 
@@ -81,33 +83,47 @@ NPU/
 ## Module Details
 
 ### `control_unit.sv` — Main FSM
-Manages the full inference pipeline: DMA weight load → SRAM store → weight feed to SA → DMA activation load → compute → accumulate → post-process → DMA output write. Contains `sram_sp` instance for weight buffering.
+DMA weight load → SRAM store → weight feed to SA → DMA activation load → compute → accumulate → post-process → DMA output write 전체 파이프라인 관리. `sram_sp` 인스턴스를 내부적으로 포함.
 
 ### `systolic_array_ws.sv` — 8×8 WS Array
-Weight Stationary dataflow: weights preloaded into PE registers, activations propagate left-to-right. 64 PEs compute INT8 MAC in parallel. Drain latency = 2×(8−1) = 14 cycles.
+Weight Stationary 데이터플로우: 가중치를 PE 레지스터에 프리로드 후 고정, activation이 좌→우로 전파. 64개 PE가 INT8 MAC 병렬 연산. 드레인 레이턴시 = 2×(8−1) = 14 사이클.
 
 ### `accumulator.sv` — Multi-tile Accumulator
-Accumulates partial sums across multiple AXI4 tiles. `acc_clr` resets between independent output rows; `acc_en` gates accumulation.
+여러 AXI4 타일에 걸친 부분합 누적. `acc_clr`로 독립 출력 행 간 리셋, `acc_en`으로 누적 게이팅.
 
 ### `post_proc.sv` — Post-Processor
-INT32 → INT8 pipeline: ReLU (zero negative values) → arithmetic right-shift by `scale[4:0]` → clamp to [−128, 127].
+INT32 → INT8 파이프라인: ReLU (음수 → 0) → 산술 우시프트 `scale[4:0]` → [-128, 127] 클램프.
 
 ### `dma_engine.sv` — AXI4 Master
-Supports both read (DRAM → internal) and write (internal → DRAM) bursts. `dma_wr` selects direction. Burst length configurable via `dma_beats`.
+읽기(DRAM → 내부)와 쓰기(내부 → DRAM) 버스트 모두 지원. `dma_wr`로 방향 선택. `dma_beats`로 버스트 길이 설정.
+
+---
+
+## UVM Verification
+
+| 컴포넌트 | 역할 |
+|----------|------|
+| `npu_driver.sv` | APB 트랜잭션 구동 |
+| `npu_monitor.sv` | APB + AXI4 버스 관찰 |
+| `npu_scoreboard.sv` | 레퍼런스 모델 계산 + 결과 비교 |
+| `npu_coverage.sv` | 기능 커버리지 수집 |
+| `npu_sequences.sv` | Basic / Stress / Corner 시퀀스 라이브러리 |
+| `dram_model.sv` | DRAM 행동 모델 (시뮬레이션 전용) |
+| `dram_backdoor_if.sv` | 스코어보드용 백도어 인터페이스 |
 
 ---
 
 ## Simulation
 
 ```bash
-# SRAM standalone test
+# SRAM 단독 테스트
 cd NPU/SIM
 ./sim_sram
-# or view waveform
+# 파형 확인
 gtkwave tb_sram.vcd
 
-# UVM testbench (requires VCS or Questa)
-vcs -sverilog -ntb_opts uvm \
+# UVM 테스트벤치 (VCS or Questa)
+vcs -sverilog -ntb_opts uvm-1.2 \
     NPU/RTL/*.sv NPU/UVM/*.sv \
     -top tb_npu_uvm
 ./simv

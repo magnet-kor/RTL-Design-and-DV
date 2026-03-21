@@ -1,14 +1,8 @@
-# RISC-V 5-Stage Pipeline CPU — Portfolio Project
+# RISCV — 5-Stage Pipelined RISC-V CPU (RV32I)
 
-**Jungho Lee** | Samsung Electronics Foundry, Library FE DK Engineer, 6 Years
+완전한 RISC-V RV32I 5단계 파이프라인 CPU. 데이터 포워딩, 해저드 검출, 2비트 포화 카운터 분기 예측기 포함.
 
----
-
-## Overview
-
-A fully functional RISC-V RV32I 5-stage pipeline CPU implemented in SystemVerilog,
-including data forwarding, hazard detection, and a 2-bit saturating counter
-branch predictor.
+**Author:** Jungho Lee — Samsung Electronics Foundry, Library FE DK Engineer, 6 years
 
 ---
 
@@ -54,7 +48,7 @@ RISCV/
 
 ## Build and Simulate
 
-Requires [Icarus Verilog](https://github.com/steveicarus/iverilog) (v10+).
+[Icarus Verilog](https://github.com/steveicarus/iverilog) (v10+) 필요.
 
 ```bash
 bash SIM/run.sh
@@ -71,20 +65,19 @@ ALL TESTS PASSED
 
 ## Key Design Decision: Branch Resolution at EX Stage
 
-**Problem with MEM-stage resolution:**
+**MEM-stage 해결의 문제:**
 
-When a `load` was immediately followed by a `branch`, the load-use stall
-(synchronous: HDU freezes IF/ID for 1 cycle) and the branch flush
-(combinatorial: clears ID/EX) conflicted in the same clock edge.
-The EX stall signal was holding IF/ID while MEM-stage flush simultaneously
-overwrote ID/EX — leaving the pipeline in an inconsistent state.
+`load` 직후 `branch`가 오는 경우, load-use 스톨(동기: HDU가 IF/ID를 1사이클 동결)과
+branch 플러시(조합: ID/EX 클리어)가 동일 클록 엣지에서 충돌.
+EX 스톨 신호가 IF/ID를 홀딩하는 동안 MEM-stage 플러시가 ID/EX를 동시에 덮어써서
+파이프라인이 불일치 상태가 됨.
 
-**Solution: move branch resolution to EX stage.**
+**해결: branch 해결을 EX stage로 이동.**
 
-Consequences:
-- Flush and stall no longer conflict (separated by one pipeline stage)
+결과:
+- 플러시와 스톨이 더 이상 충돌하지 않음 (파이프라인 스테이지로 분리)
 - Branch miss penalty: 3 cycles → **1 cycle**
-- Enables clean integration of 2-bit predictor
+- 2-bit 예측기 연동이 깔끔해짐
 
 ---
 
@@ -98,21 +91,18 @@ Consequences:
 | Gate count | ~3,500 gates (+73% vs single-cycle) |
 | Throughput gain | **1.58× single-cycle baseline** |
 
-Clock estimate derived from FA-chain gate delay in the foundry library —
-the same method used daily for Liberty characterization work.
+클록 추정은 파운드리 라이브러리의 FA 체인 게이트 딜레이 기반 —
+Liberty 특성화 업무에서 매일 사용하는 방법과 동일.
 
 ---
 
 ## Foundry Experience Connection
 
-Six years of Library FE DK development provided three direct inputs to this design:
+Samsung Foundry 6년 경험이 본 설계에 직접 연결된 세 가지:
 
-1. **Critical-path intuition**: knowing FA delay per node makes clock estimates
-   concrete rather than theoretical.
+1. **크리티컬 패스 직관**: FA 딜레이를 노드별로 알기 때문에 클록 추정이 이론이 아닌 수치로 나옴.
 
-2. **DFT awareness**: every pipeline register is scan-compatible; no feedback loops
-   that would block scan-chain insertion.
+2. **DFT 인식**: 모든 파이프라인 레지스터가 스캔 호환 — 스캔 체인 삽입을 막는 피드백 루프 없음.
 
-3. **Process-performance relationship**: the design explicitly targets sky130
-   (open PDK) with Yosys, demonstrating the RTL → synthesis → timing closure flow
-   used in real foundry tape-outs.
+3. **공정-성능 관계**: sky130(오픈 PDK) + Yosys를 명시적으로 타깃으로 하여
+   실제 파운드리 테이프아웃에서 사용하는 RTL → 합성 → 타이밍 클로저 플로우를 시연.
