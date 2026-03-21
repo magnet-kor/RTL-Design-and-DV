@@ -91,6 +91,31 @@ ACCEL/
 ├── SYNTH/                    Yosys synthesis scripts
 │   ├── synth_decoder.ys      Synthesis script (read → synth → write)
 │   └── synth_abc.sdc         Timing constraints (200 MHz, sky130)
+├── UVM/                      UVM verification environment
+│   ├── agents/
+│   │   ├── dec_agent.sv      UVM agent (driver + monitor + sequencer)
+│   │   ├── dec_driver.sv     AXI4 stimulus driver
+│   │   ├── dec_monitor.sv    Bus monitor
+│   │   └── dec_seq_item.sv   Transaction item definition
+│   ├── env/
+│   │   ├── dec_env.sv        UVM env (agent + scoreboard + coverage)
+│   │   ├── dec_scoreboard.sv Reference model + result comparison
+│   │   ├── dec_coverage.sv   Functional coverage groups
+│   │   └── dec_axi4_bfm.sv   AXI4 BFM (bus functional model)
+│   ├── sequences/
+│   │   └── dec_sequences.sv  Sequence library (basic, stress, corner)
+│   ├── tests/
+│   │   └── dec_tests.sv      Test class (scenario orchestration)
+│   ├── tb/
+│   │   ├── dec_tb_top.sv         Top-level testbench + clock/reset
+│   │   ├── decoder_if.sv         SystemVerilog interface
+│   │   └── decoder_layer_stub.sv Decoder layer DUT stub
+│   └── scripts/
+│       ├── run_lint.sh           Lint run script
+│       ├── build_uvm_stub.sh     UVM stub build script
+│       └── uvm_stub/
+│           ├── uvm_pkg.sv        UVM package stub
+│           └── uvm_macros.svh    UVM macro definitions
 └── DOCS/                     Documentation
     ├── README.md             This file
     ├── ARCH_SPEC.md          Architecture specification + performance budget
