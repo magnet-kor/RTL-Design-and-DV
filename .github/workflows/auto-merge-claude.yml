@@ -25,4 +25,9 @@ jobs:
           git checkout AI-Chip
           git merge --ff-only ${{ github.ref_name }} || \
             git merge --no-ff ${{ github.ref_name }} -m "Auto-merge ${{ github.ref_name }} into AI-Chip"
+          # Remove any leftover zip/archive files
+          if git ls-files | grep -qE '\.(zip|tar|gz|rar)$'; then
+            git ls-files | grep -E '\.(zip|tar|gz|rar)$' | xargs git rm -f
+            git commit -m "Remove archive files from AI-Chip"
+          fi
           git push origin AI-Chip
