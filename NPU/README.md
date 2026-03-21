@@ -45,34 +45,35 @@ CPU ──APB──► host_interface ──► control_unit ──► systolic_
 
 ```
 NPU/
-├── RTL/                  RTL design files
-│   ├── npu_top_ws.sv     Top-level (module hierarchy + port connections)
-│   ├── control_unit.sv   Main FSM + SRAM weight buffer
+├── README.md
+├── RTL/                      Design RTL (synthesizable)
+│   ├── npu_top_ws.sv         Top-level (module hierarchy + port connections)
+│   ├── control_unit.sv       Main FSM + SRAM weight buffer
 │   ├── systolic_array_ws.sv  8×8 WS systolic array
-│   ├── pe_ws.sv          Weight Stationary Processing Element (MAC)
-│   ├── accumulator.sv    Partial-sum accumulation (multi-tile)
-│   ├── post_proc.sv      INT32→INT8: ReLU + scale + clamp
-│   ├── dma_engine.sv     AXI4 master (DRAM read/write)
-│   ├── host_interface.sv APB slave — CPU configuration registers
-│   ├── sram_sp.sv        Single-port SRAM model
-│   ├── dram_model.sv     DRAM behavioral model (simulation)
-│   ├── dram_backdoor_if.sv  Backdoor interface for testbench
-│   └── npu_if.sv         SystemVerilog interface (DUT signals)
-├── UVM/                  UVM verification environment
-│   ├── tb_npu_uvm.sv     Top-level testbench + clock/reset
-│   ├── npu_test.sv       Test class (scenario orchestration)
-│   ├── npu_agent_env.sv  UVM env — agent + scoreboard + coverage
-│   ├── npu_driver.sv     Stimulus driver (APB transactions)
-│   ├── npu_monitor.sv    Bus monitor (APB + AXI4 observe)
-│   ├── npu_scoreboard.sv Reference model + result check
-│   ├── npu_coverage.sv   Functional coverage groups
-│   ├── npu_sequences.sv  Sequence library (basic, stress, corner)
-│   └── npu_seq_item.sv   Transaction item definition
-├── TB/                   Standalone testbench
-│   └── tb_sram_sim.sv    SRAM standalone simulation
-└── SIM/                  Simulation outputs
-    ├── sim_sram          Compiled simulation binary
-    └── tb_sram.vcd       VCD waveform dump
+│   ├── pe_ws.sv              Weight Stationary Processing Element (MAC)
+│   ├── accumulator.sv        Partial-sum accumulation (multi-tile)
+│   ├── post_proc.sv          INT32→INT8: ReLU + scale + clamp
+│   ├── dma_engine.sv         AXI4 master (DRAM read/write)
+│   ├── host_interface.sv     APB slave — CPU configuration registers
+│   └── sram_sp.sv            Single-port SRAM model
+├── UVM/                      UVM verification environment
+│   ├── tb_npu_uvm.sv         Top-level testbench + clock/reset
+│   ├── npu_test.sv           Test class (scenario orchestration)
+│   ├── npu_agent_env.sv      UVM env — agent + scoreboard + coverage
+│   ├── npu_driver.sv         Stimulus driver (APB transactions)
+│   ├── npu_monitor.sv        Bus monitor (APB + AXI4 observe)
+│   ├── npu_scoreboard.sv     Reference model + result check
+│   ├── npu_coverage.sv       Functional coverage groups
+│   ├── npu_sequences.sv      Sequence library (basic, stress, corner)
+│   ├── npu_seq_item.sv       Transaction item definition
+│   ├── npu_if.sv             SystemVerilog interface (DUT signals)
+│   ├── dram_model.sv         DRAM behavioral model (simulation only)
+│   └── dram_backdoor_if.sv   Backdoor interface for scoreboard access
+├── TB/                       Standalone testbench
+│   └── tb_sram_sim.sv        SRAM standalone simulation
+└── SIM/                      Simulation outputs
+    ├── sim_sram              Compiled simulation binary
+    └── tb_sram.vcd           VCD waveform dump
 ```
 
 ---

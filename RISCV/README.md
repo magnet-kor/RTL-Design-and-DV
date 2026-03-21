@@ -26,29 +26,28 @@ branch predictor.
 
 ---
 
-## File Structure
+## Directory Structure
 
 ```
-rtl/
-├── alu.sv              32-bit ALU (ADD SUB AND OR XOR SLL SRL SRA SLT SLTU LUI)
-├── alu_ctrl.sv         ALU control: funct3/funct7 → 4-bit alu_op
-├── control.sv          Main control unit: opcode → all pipeline signals
-├── regfile.sv          32×32 register file with write-first forwarding
-├── imm_gen.sv          Immediate generator for all RV32I formats
-├── forwarding_unit.sv  EX-EX and MEM-EX forwarding logic
-├── hdu.sv              Hazard Detection Unit (load-use stall)
-├── branch_predictor.sv 2-bit saturating counter predictor (64 entries)
-└── riscv_pipeline.sv   Top-level 5-stage pipeline integration
-
-tb/
-└── riscv_pipeline_tb.sv  22-point testbench (7 test cases)
-
-sim/
-└── run.sh              Build and simulate (iverilog)
-
-docs/
-├── DESIGN_NOTES.md     Key design decisions with quantitative justification
-└── INTERVIEW_QA.md     Interview Q&A covering all design choices
+RISCV/
+├── README.md
+├── RTL/                      Design RTL (SystemVerilog)
+│   ├── riscv_pipeline.sv     Top-level 5-stage pipeline integration
+│   ├── alu.sv                32-bit ALU (ADD SUB AND OR XOR SLL SRL SRA SLT SLTU LUI)
+│   ├── alu_ctrl.sv           ALU control: funct3/funct7 → 4-bit alu_op
+│   ├── control.sv            Main control unit: opcode → all pipeline signals
+│   ├── regfile.sv            32×32 register file with write-first forwarding
+│   ├── imm_gen.sv            Immediate generator for all RV32I formats
+│   ├── forwarding_unit.sv    EX-EX and MEM-EX forwarding logic
+│   ├── hdu.sv                Hazard Detection Unit (load-use stall)
+│   └── branch_predictor.sv   2-bit saturating counter predictor (64 entries)
+├── TB/                       Testbench
+│   └── riscv_pipeline_tb.sv  22-point testbench (7 test cases)
+├── SIM/                      Simulation scripts
+│   └── run.sh                Build and simulate (iverilog)
+└── DOCS/                     Documentation
+    ├── DESIGN_NOTES.md       Key design decisions with quantitative justification
+    └── INTERVIEW_QA.md       Interview Q&A covering all design choices
 ```
 
 ---
@@ -58,8 +57,8 @@ docs/
 Requires [Icarus Verilog](https://github.com/steveicarus/iverilog) (v10+).
 
 ```bash
-bash sim/run.sh
-# Optional: bash sim/run.sh wave   (opens GTKWave)
+bash SIM/run.sh
+# Optional: bash SIM/run.sh wave   (opens GTKWave)
 ```
 
 Expected output:
