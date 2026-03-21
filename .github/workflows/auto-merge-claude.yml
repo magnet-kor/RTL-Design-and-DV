@@ -5,6 +5,10 @@ on:
     branches:
       - 'claude/**'
 
+concurrency:
+  group: auto-merge-ai-chip
+  cancel-in-progress: false
+
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
