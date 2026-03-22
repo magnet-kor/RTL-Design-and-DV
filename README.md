@@ -11,7 +11,7 @@
 RTL-Design-and-DV/
 ├── NPU/      Weight Stationary NPU — 8×8 WS Systolic Array + UVM
 ├── ACCEL/    LLM Accelerator — Transformer Decoder Layer + UVM
-└── RISCV/    RISC-V RV32I 5-Stage Pipelined CPU
+└── RISCV/    RISC-V RV32I 5-Stage Pipelined CPU + UVM
 ```
 
 모든 프로젝트는 동일한 서브 디렉터리 규칙을 따릅니다:
@@ -63,9 +63,9 @@ RTL-Design-and-DV/
 
 ---
 
-### RISCV — 5-Stage Pipelined RISC-V CPU (RV32I)
+### RISCV — 5-Stage Pipelined RISC-V CPU (RV32I) + UVM
 
-완전한 RV32I 5단계 파이프라인. 데이터 포워딩, 해저드 검출, 2비트 포화 카운터 분기 예측기 포함.
+완전한 RV32I 5단계 파이프라인. 데이터 포워딩, 해저드 검출, 2비트 포화 카운터 분기 예측기 포함. 전체 UVM 검증 환경 추가.
 
 | 항목 | 내용 |
 |------|------|
@@ -76,6 +76,7 @@ RTL-Design-and-DV/
 | CPI | 1.71 (predictor 없음) / ~1.45 (2-bit, loop-heavy) |
 | Gate count | ~3,500 gates · sky130 target |
 | Test | 22 points / 7 test cases — ALL PASS |
+| Verification | UVM Agent / Driver / Monitor / Scoreboard / Coverage (7 test classes) |
 
 → [`RISCV/`](./RISCV/README.md)
 

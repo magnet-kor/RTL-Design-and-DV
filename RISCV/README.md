@@ -25,23 +25,45 @@
 ```
 RISCV/
 ├── README.md
-├── RTL/                      Design RTL (SystemVerilog)
-│   ├── riscv_pipeline.sv     Top-level 5-stage pipeline integration
-│   ├── alu.sv                32-bit ALU (ADD SUB AND OR XOR SLL SRL SRA SLT SLTU LUI)
-│   ├── alu_ctrl.sv           ALU control: funct3/funct7 → 4-bit alu_op
-│   ├── control.sv            Main control unit: opcode → all pipeline signals
-│   ├── regfile.sv            32×32 register file with write-first forwarding
-│   ├── imm_gen.sv            Immediate generator for all RV32I formats
-│   ├── forwarding_unit.sv    EX-EX and MEM-EX forwarding logic
-│   ├── hdu.sv                Hazard Detection Unit (load-use stall)
-│   └── branch_predictor.sv   2-bit saturating counter predictor (64 entries)
-├── TB/                       Testbench
-│   └── riscv_pipeline_tb.sv  22-point testbench (7 test cases)
-├── SIM/                      Simulation scripts
-│   └── run.sh                Build and simulate (iverilog)
-└── DOCS/                     Documentation
-    ├── DESIGN_NOTES.md       Key design decisions with quantitative justification
-    └── INTERVIEW_QA.md       Interview Q&A covering all design choices
+├── RTL/                          Design RTL (SystemVerilog)
+│   ├── riscv_pipeline.sv         Top-level 5-stage pipeline integration
+│   ├── alu.sv                    32-bit ALU (ADD SUB AND OR XOR SLL SRL SRA SLT SLTU LUI)
+│   ├── alu_ctrl.sv               ALU control: funct3/funct7 → 4-bit alu_op
+│   ├── control.sv                Main control unit: opcode → all pipeline signals
+│   ├── regfile.sv                32×32 register file with write-first forwarding
+│   ├── imm_gen.sv                Immediate generator for all RV32I formats
+│   ├── forwarding_unit.sv        EX-EX and MEM-EX forwarding logic
+│   ├── hdu.sv                    Hazard Detection Unit (load-use stall)
+│   └── branch_predictor.sv       2-bit saturating counter predictor (64 entries)
+├── UVM/                          UVM Verification Environment
+│   ├── AGENTS/                   UVM Agent components
+│   │   ├── riscv_seq_item.sv     Transaction item (program + expected registers)
+│   │   ├── riscv_driver.sv       Driver: loads imem, drives reset, waits execution
+│   │   ├── riscv_monitor.sv      Monitor: captures register file snapshot
+│   │   └── riscv_agent.sv        Agent: driver + sequencer + monitor
+│   ├── ENV/                      UVM Environment
+│   │   ├── riscv_env.sv          Top-level env: agent + scoreboard + coverage
+│   │   ├── riscv_scoreboard.sv   Scoreboard: register value checker
+│   │   └── riscv_coverage.sv     Functional coverage: program size, register usage
+│   ├── SEQUENCES/                UVM Sequences
+│   │   └── riscv_sequences.sv    R-type / I-type / Load / Branch / JAL / Hazard / Regression
+│   ├── TB/                       Testbench Top
+│   │   ├── riscv_if.sv           Verification interface (clk, rst_n, reg_snapshot)
+│   │   └── riscv_tb_top.sv       Top module: DUT + interface + UVM run_test()
+│   ├── TESTS/                    UVM Tests
+│   │   └── riscv_tests.sv        7 tests: rtype / itype / load / branch / jal / hazard / regression
+│   └── SCRIPTS/                  Build scripts and UVM stub
+│       ├── build_uvm_sim.sh      iverilog/VCS compile + simulate script
+│       └── UVM_STUB/             Lightweight UVM stub (iverilog compatible)
+│           ├── uvm_pkg.sv
+│           └── uvm_macros.svh
+├── TB/                           Standalone Testbench
+│   └── riscv_pipeline_tb.sv      22-point testbench (7 test cases)
+├── SIM/                          Simulation scripts
+│   └── run.sh                    Build and simulate (iverilog)
+└── DOCS/                         Documentation
+    ├── DESIGN_NOTES.md           Key design decisions with quantitative justification
+    └── INTERVIEW_QA.md           Interview Q&A covering all design choices
 ```
 
 ---
@@ -49,6 +71,8 @@ RISCV/
 ## Build and Simulate
 
 [Icarus Verilog](https://github.com/steveicarus/iverilog) (v10+) 필요.
+
+### Standalone Testbench (빠른 검증)
 
 ```bash
 bash SIM/run.sh
@@ -60,6 +84,31 @@ Expected output:
 Results: 22 PASS  /  0 FAIL
 ALL TESTS PASSED
 ```
+
+### UVM Testbench (전체 검증 환경)
+
+```bash
+# 전체 Regression (7개 시퀀스 실행)
+bash UVM/SCRIPTS/build_uvm_sim.sh riscv_regression_test
+
+# 개별 테스트 실행
+bash UVM/SCRIPTS/build_uvm_sim.sh riscv_rtype_test
+bash UVM/SCRIPTS/build_uvm_sim.sh riscv_itype_test
+bash UVM/SCRIPTS/build_uvm_sim.sh riscv_load_test
+bash UVM/SCRIPTS/build_uvm_sim.sh riscv_branch_test
+bash UVM/SCRIPTS/build_uvm_sim.sh riscv_jal_test
+bash UVM/SCRIPTS/build_uvm_sim.sh riscv_hazard_test
+```
+
+| UVM 테스트 | 검증 항목 |
+|-----------|----------|
+| `riscv_rtype_test`    | ADD, SUB, AND, OR, XOR, SLL, SRL, SLT |
+| `riscv_itype_test`    | ADDI, ANDI, ORI, XORI, SLLI, SRLI |
+| `riscv_load_test`     | SW + LW round-trip (dmem 검증) |
+| `riscv_branch_test`   | BEQ/BNE forward branch (taken/not-taken) |
+| `riscv_jal_test`      | JAL jump + return address register |
+| `riscv_hazard_test`   | EX-EX forwarding chain (Fibonacci 수열) |
+| `riscv_regression_test` | 위 6개 시퀀스 전체 실행 |
 
 ---
 
