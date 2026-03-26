@@ -1,6 +1,7 @@
 # RTL Design & Verification
 
 **Author:** Jungho Lee — Samsung Electronics Foundry, Library FE DK Engineer, 6 years
+
 **Stack:** SystemVerilog RTL · UVM · Yosys (sky130) · Verilator · Python
 
 ---
