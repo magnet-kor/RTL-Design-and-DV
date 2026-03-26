@@ -88,5 +88,5 @@ SRAM 컴파일러 특성화, Liberty 타이밍 체인 분석, Fusion Compiler RT
 DFT 사인오프 (JTAG / Logic BIST / Memory BIST / ATPG), Palladium/Zebu 에뮬레이션,
 eFlash·eMRAM용 DNA BIST 컨트롤러 RTL 설계 (양산 적용).
 
-본 포트폴리오는 파운드리 물리 설계 경험을 AI 가속기 RTL로 연결한 결과물입니다.
+본 작업물은 파운드리 물리 설계 경험을 AI 가속기 RTL로 연결한 결과물입니다.
 모든 수치에는 도출 근거가 있으며, 모든 설계 결정에는 정량적 트레이드오프가 존재합니다.
