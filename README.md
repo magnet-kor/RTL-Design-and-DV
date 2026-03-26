@@ -2,7 +2,7 @@
 
 **Author:** Jungho Lee — Samsung Electronics Foundry, Library FE DK Engineer, 6 years
 
-**Stack:** SystemVerilog RTL · UVM · Yosys (sky130) · Verilator · Python
+**Stack:** SystemVerilog RTL · UVM · Commercial EDA · Python
 
 ---
 
@@ -17,15 +17,15 @@ RTL-Design-and-DV/
 
 모든 프로젝트는 동일한 서브 디렉터리 규칙을 따릅니다:
 
-| 디렉터리  | 내용                              |
+| 디렉터리     | 내용                              |
 |-----------|-----------------------------------|
-| `RTL/`    | 합성 가능한 설계 RTL (SystemVerilog) |
-| `UVM/`    | UVM 검증 환경                     |
-| `TB/`     | 단독 테스트벤치 / LUT 초기화 스크립트 |
-| `SIM/`    | 시뮬레이션 스크립트 / 출력 파일     |
-| `SYNTH/`  | 합성 스크립트 (Yosys)              |
-| `GOLDEN/` | Python 비트 정확도 레퍼런스 모델   |
-| `DOCS/`   | 설계 문서                          |
+| `RTL/`    | 합성 가능한 설계 RTL (SystemVerilog)   |
+| `UVM/`    | UVM 검증 환경                        |
+| `TB/`     | 단독 테스트벤치 / LUT 초기화 스크립트      |
+| `SIM/`    | 시뮬레이션 스크립트 / 출력 파일           |
+| `SYNTH/`  | 합성 스크립트                         |
+| `GOLDEN/` | Python 비트 정확도 레퍼런스 모델         |
+| `DOCS/`   | 설계 문서                            |
 
 ---
 
@@ -35,11 +35,11 @@ RTL-Design-and-DV/
 
 8×8 Weight Stationary Systolic Array NPU. APB 슬레이브(CPU 설정) + AXI4 마스터(DRAM DMA) 인터페이스. 완전한 UVM 검증 환경 포함.
 
-| 항목 | 내용 |
+| 항목  | 내용  |
 |------|------|
 | Architecture | 8×8 WS Systolic Array (64 PE, INT8 MAC) |
-| Interface | APB Slave (CPU config) · AXI4 Master (DRAM DMA) |
-| Memory | 256 KB on-chip SRAM (weight buffer) |
+| Interface    | APB Slave (CPU config) · AXI4 Master (DRAM DMA) |
+| Memory       | 256 KB on-chip SRAM (weight buffer) |
 | Post-processing | ReLU + INT8 quantization (scale >> + clamp) |
 | Verification | UVM Agent / Driver / Monitor / Scoreboard / Coverage |
 
